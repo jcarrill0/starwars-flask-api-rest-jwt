@@ -8,8 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
-#from models import Person
+from models import db, User, People, Planet, Favorite
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -31,12 +30,33 @@ def sitemap():
     return generate_sitemap(app)
 
 @app.route('/user', methods=['GET'])
-def handle_hello():
+def list_user():
+    all_user = User.query.all()
+    all_user = list(map(lambda x: x.serialize(), all_user))
+    return jsonify(all_user), 200
+
+@app.route('/user', methods=['POST'])
+def create_user():
+    body = request.get_json()
+
+    if body is None:
+        return "The request body is null", 400
+    if 'email' not in body:
+        return 'You need to specify the email', 400
+    if 'password' not in body:
+        return 'You need to specify the password', 400
+    
+    user = User()
+    user.email = body['email']
+    user.password = body['password']
+    user.is_active = True
+
+    db.session.add(user)
+    db.session.commit()
 
     response_body = {
-        "msg": "Hello, this is your GET /user response "
+        "msg": "PURA VIDA"
     }
-
     return jsonify(response_body), 200
 
 # this only runs if `$ python src/main.py` is executed
