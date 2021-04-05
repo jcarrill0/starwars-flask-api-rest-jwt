@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+import datetime
 
 db = SQLAlchemy()
 
@@ -7,10 +8,12 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(80), nullable=False)
     password = db.Column(db.Text, nullable=False)
-    favorites = db.relationship('Favorite', backref="user", uselist=False, lazy="select")
+    favorites = db.relationship("Favorite", backref="user", uselist=False, lazy="select")
+    created_at = db.Column(db.DateTime, default=datetime.datetime.now())
 
     def __repr__(self):
         return '<User %r>' % self.username
+        # return f'<User {self.name}>'
 
     def serialize(self):
         return {
@@ -18,6 +21,7 @@ class User(db.Model):
             "username" : self.username,
             "email": self.email,
             "password" : self.password,
+            "create" : self.created_at
         }
 
 class People(db.Model):
@@ -32,6 +36,7 @@ class People(db.Model):
 
     def __repr__(self):
         return '<People %r>' % self.name
+        # return f'<People {self.name}>'
 
     def serialize(self):
         return {
@@ -42,6 +47,7 @@ class People(db.Model):
             "height" : self.height,
             "skin_color" : self.skin_color,
             "eye_color" : self.eye_color
+            # "favorites" : list(map(lambda x: x.serialize(), self.favorites))
                     
         }
 
@@ -57,6 +63,7 @@ class Planet(db.Model):
 
     def __repr__(self):
         return '<Planet %r>' % self.name
+        # return f'<Planet {self.name}>'
 
     def serialize(self):
         return {
@@ -67,6 +74,7 @@ class Planet(db.Model):
             "orbital_period" : self.orbital_period,
             "rotation_period" : self.rotation_period,
             "diamater" : self.diamater
+            # "favorites" : list(map(lambda x: x.serialize(), self.favorites))
         }
 
 class Favorite(db.Model):
@@ -77,6 +85,7 @@ class Favorite(db.Model):
 
     # def __repr__(self):
     #     return '<Favorite %r>' % self.username
+    #     return f'<Favorite {self.name}>'
 
     def serialize(self):
         return {
