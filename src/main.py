@@ -153,8 +153,8 @@ def handle_people_id(people_id):
     else:
         raise APIException('People does not exist', status_code=404)
 
-@app.route('/planet', methods=['GET', 'POST'])
-def handle_planet_all():
+@app.route('/planets', methods=['GET', 'POST'])
+def handle_planets_all():
     body = request.get_json()
 
     if request.method == 'POST':
@@ -170,8 +170,8 @@ def handle_planet_all():
             return 'You need to specify the orbital_period', 400
         if 'rotation_period' not in body:
             return 'You need to specify the rotation_period', 400
-        if 'diamater' not in body:
-            return 'You need to specify the diamater', 400
+        if 'diameter' not in body:
+            return 'You need to specify the diameter', 400
 
         planet = Planet()
         planet.name = body['name']
@@ -179,7 +179,7 @@ def handle_planet_all():
         planet.population = body['population']
         planet.orbital_period = body['orbital_period']
         planet.rotation_period = body['rotation_period']
-        planet.diamater = body['diamater']
+        planet.diameter = body['diameter']
         db.session.add(planet)
         db.session.commit()
         return "ok", 200
@@ -193,8 +193,8 @@ def handle_planet_all():
     
     return "Invalid Method", 404
 
-@app.route('/planet/<int:planet_id>', methods=['GET', 'PUT', 'DELETE'])
-def handle_planet_id(planet_id):
+@app.route('/planets/<int:planet_id>', methods=['GET', 'PUT', 'DELETE'])
+def handle_planets_id(planet_id):
     people = Planet.query.get(planet_id) # People.query.filter_by(id=people_id).first()
     if planet is not None:
         if request.method == 'PUT':
@@ -209,8 +209,8 @@ def handle_planet_id(planet_id):
                 planet.orbital_period = body['orbital_period']
             if 'rotation_period' in body:
                 planet.rotation_period = body['rotation_period']
-            if 'diamater' in body:
-                planet.diamater = body['diamater']
+            if 'diameter' in body:
+                planet.diameter = body['diameter']
             db.session.commit()
             return jsonify({ "msg": "Success: Planet Update" }), 200
         if request.method == 'DELETE':
@@ -222,14 +222,13 @@ def handle_planet_id(planet_id):
     else:
         raise APIException('Planet does not exist', status_code=404)
 
-@app.route('/favorite', methods=['GET', 'POST'])
+@app.route('/favorites', methods=['GET', 'POST'])
+def handle_favorites_all():
+    return "Favorites maintenance"
 
-
-
-@app.route('/favorite/<int:favorite_id>', methods=['GET', 'PUT', 'DELETE'])
-
-
-
+@app.route('/favorites/<int:favorite_id>', methods=['GET', 'PUT', 'DELETE'])
+def handle_favorites_id(favorite_id):
+    return "Favorites maintenance"
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':

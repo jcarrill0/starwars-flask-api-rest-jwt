@@ -58,7 +58,7 @@ class Planet(db.Model):
     population = db.Column(db.Integer, nullable=False)
     orbital_period = db.Column(db.Integer, nullable=False)
     rotation_period = db.Column(db.Integer, nullable=False)
-    diamater = db.Column(db.Integer, nullable=False)
+    diameter = db.Column(db.Integer, nullable=False)
     favorites = db.relationship('Favorite', backref='planet', lazy=True)
 
     def __repr__(self):
@@ -73,7 +73,7 @@ class Planet(db.Model):
             "population" : self.population,
             "orbital_period" : self.orbital_period,
             "rotation_period" : self.rotation_period,
-            "diamater" : self.diamater
+            "diameter" : self.diameter
             # "favorites" : list(map(lambda x: x.serialize(), self.favorites))
         }
 
