@@ -124,11 +124,10 @@ def handle_people_all():
     
     return "Invalid Method", 404
 
-
 @app.route('/people/<int:people_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_people_id(people_id):
     people = People.query.get(people_id) # People.query.filter_by(id=people_id).first()
-    if user is not None:
+    if people is not None:
         if request.method == 'PUT':
             body = request.get_json()
             if 'name' in body:
@@ -155,10 +154,77 @@ def handle_people_id(people_id):
         raise APIException('People does not exist', status_code=404)
 
 @app.route('/planet', methods=['GET', 'POST'])
+def handle_planet_all():
+    body = request.get_json()
 
-@app.route('/planet/<int:planeta_id>', methods=['GET', 'PUT', 'DELETE'])
+    if request.method == 'POST':
+        if body is None:
+            return "The request body is null", 400
+        if 'name' not in body:
+            return 'You need to specify the name', 400
+        if 'climate' not in body:
+            return 'You need to specify the climate', 400
+        if 'population' not in body:
+            return 'You need to specify the population', 400
+        if 'orbital_period' not in body:
+            return 'You need to specify the orbital_period', 400
+        if 'rotation_period' not in body:
+            return 'You need to specify the rotation_period', 400
+        if 'diamater' not in body:
+            return 'You need to specify the diamater', 400
+
+        planet = Planet()
+        planet.name = body['name']
+        planet.climate = body['climate']
+        planet.population = body['population']
+        planet.orbital_period = body['orbital_period']
+        planet.rotation_period = body['rotation_period']
+        planet.diamater = body['diamater']
+        db.session.add(planet)
+        db.session.commit()
+        return "ok", 200
+    if request.method == 'GET':
+        all_planet = list(map(lambda x: x.serialize(), Planet.query.all()))
+        # all_people = [ people.serialize() for people in People.query.all() ] 
+        if len(all_planet) > 0:
+            return jsonify(all_planet), 200
+        else:
+            return  jsonify({ "msg": "No existing Planets" }), 200     
+    
+    return "Invalid Method", 404
+
+@app.route('/planet/<int:planet_id>', methods=['GET', 'PUT', 'DELETE'])
+def handle_planet_id(planet_id):
+    people = Planet.query.get(planet_id) # People.query.filter_by(id=people_id).first()
+    if planet is not None:
+        if request.method == 'PUT':
+            body = request.get_json()
+            if 'name' in body:
+                planet.name = body['name']
+            if 'climate' in body:
+                planet.climate = body['climate']
+            if 'gender' in body:
+                planet.population = body['population']
+            if 'orbital_period' in body:
+                planet.orbital_period = body['orbital_period']
+            if 'rotation_period' in body:
+                planet.rotation_period = body['rotation_period']
+            if 'diamater' in body:
+                planet.diamater = body['diamater']
+            db.session.commit()
+            return jsonify({ "msg": "Success: Planet Update" }), 200
+        if request.method == 'DELETE':
+            db.session.delete(people)
+            db.session.commit()
+            return jsonify({ "msg": "Success: Planet Delete" }), 200
+        if request.method == 'GET':
+            return jsonify(people.serialize()), 200   
+    else:
+        raise APIException('Planet does not exist', status_code=404)
 
 @app.route('/favorite', methods=['GET', 'POST'])
+
+
 
 @app.route('/favorite/<int:favorite_id>', methods=['GET', 'PUT', 'DELETE'])
 
