@@ -1,6 +1,7 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
+
 import os
 from flask import Flask, request, jsonify, url_for
 from flask_migrate import Migrate
@@ -29,35 +30,32 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-@app.route('/user', methods=['GET'])
-def list_user():
-    all_user = User.query.all()
-    all_user = list(map(lambda x: x.serialize(), all_user))
-    return jsonify(all_user), 200
-
-@app.route('/user', methods=['POST'])
-def create_user():
+@app.route('/user', methods=['GET'. 'POST'])
+def handle_user():
     body = request.get_json()
 
-    if body is None:
-        return "The request body is null", 400
-    if 'email' not in body:
-        return 'You need to specify the email', 400
-    if 'password' not in body:
-        return 'You need to specify the password', 400
+    if request.method == 'POST':
+        if body is None:
+            return "The request body is null", 400
+        if 'email' not in body:
+            return 'You need to specify the email', 400
+        if 'password' not in body:
+            return 'You need to specify the password', 400
+        user = User()
+        user.email = body.email #body['email']
+        user.password = body.password #body['password']
+        user.is_active = True
+        db.session.add(user)
+        db.session.commit()
+        response_body = { "msg": "PURA VIDA" }
+        return jsonify(response_body), 200
+    if request.method == 'GET':
+        all_user = User.query.all()
+        all_user = list(map(lambda x: x.serialize(), all_user))
+        
+        return jsonify(all_user), 200
     
-    user = User()
-    user.email = body['email']
-    user.password = body['password']
-    user.is_active = True
-
-    db.session.add(user)
-    db.session.commit()
-
-    response_body = {
-        "msg": "PURA VIDA"
-    }
-    return jsonify(response_body), 200
+    return "Invalid Method", 404
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
