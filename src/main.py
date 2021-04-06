@@ -11,10 +11,17 @@ from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User, People, Planet, Favorite
 
+# from flask_jwt_extended import create_access_token, et_jwt_identity, jwt_required, JWTManager
+
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_CONNECTION_STRING')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Setup the Flask-JWT-Extended extension
+# app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
+# jwt = JWTManager(app)
+
 MIGRATE = Migrate(app, db)
 db.init_app(app) ## inicializo mi base de datos con mi app (db = SQLAlchemy(app))
 CORS(app)
@@ -74,11 +81,11 @@ def handle_user_id(user_id):
             if 'password' in body:
                 user.password = body['password']
             db.session.commit()
-            return jsonify({ "msg": "Success: User Update" }), 200
+            return jsonify({ "msg": "User update successfuly" }), 200
         if request.method == 'DELETE':
             db.session.delete(user)
             db.session.commit()
-            return jsonify({ "msg": "Success: User Delete" }), 200
+            return jsonify({ "msg": "User delete successfuly" }), 200
         if request.method == 'GET':
             return jsonify(user.serialize()), 200   
     else:
@@ -143,11 +150,11 @@ def handle_people_id(people_id):
             if 'eye_color' in body:
                 people.eye_color = body['eye_color']
             db.session.commit()
-            return jsonify({ "msg": "Success: People Update" }), 200
+            return jsonify({ "msg": "People Update Successfuly" }), 200
         if request.method == 'DELETE':
             db.session.delete(people)
             db.session.commit()
-            return jsonify({ "msg": "Success: People Delete" }), 200
+            return jsonify({ "msg": "People Delete Successfuly" }), 200
         if request.method == 'GET':
             return jsonify(people.serialize()), 200   
     else:
@@ -212,11 +219,11 @@ def handle_planets_id(planet_id):
             if 'diameter' in body:
                 planet.diameter = body['diameter']
             db.session.commit()
-            return jsonify({ "msg": "Success: Planet Update" }), 200
+            return jsonify({ "msg": "Planet Update Successfuly" }), 200
         if request.method == 'DELETE':
             db.session.delete(people)
             db.session.commit()
-            return jsonify({ "msg": "Success: Planet Delete" }), 200
+            return jsonify({ "msg": "Planet Delete Successfuly" }), 200
         if request.method == 'GET':
             return jsonify(people.serialize()), 200   
     else:
