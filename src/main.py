@@ -27,6 +27,23 @@ db.init_app(app) ## inicializo mi base de datos con mi app (db = SQLAlchemy(app)
 CORS(app)
 setup_admin(app)
 
+
+def load_data_users():
+    users = [
+        {"email":"josecarrillo8@gmail.com", "password":"1234", "username":"jcarrillo"},
+        {"email":"hangelous29@gmail.com", "password":"1234", "username":"hangelous"}
+    ]
+
+    for user in users:
+        my_user = User.query.filter_by(email=user['email']).first()
+        if my_user is None:
+            new_user = User()
+            new_user.email= user['email']
+            new_user.password= user['password']
+            new_user.username= user['username']
+            db.session.add(new_user)
+            db.session.commit()
+
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
@@ -35,38 +52,51 @@ def handle_invalid_usage(error):
 # generate sitemap with all your endpoints
 @app.route('/')
 def sitemap():
+    load_data_users() # Llenamos la tabla de usuarios con 2 usuarios de test
     return generate_sitemap(app)
 
-@app.route('/user', methods=['GET', 'POST'])
-def handle_user_all():
-    body = request.get_json()
+@app.route('/register', methods=['POST'])
+def signout():
+    username = request.json.get('username', None)
+    password = request.json.get('password', None)
+    email = request.json.get('email', None)
+    
+    if username is None:
+        return 'You need to specify the username', 400
+    if password is None:
+        return 'You need to specify the password', 400
+    if email is None:
+        return 'You need to specify the email', 400
 
-    if request.method == 'POST':
-        if body is None:
-            return "The request body is null", 400
-        if 'username' not in body:
-            return 'You need to specify the username', 400
-        if 'password' not in body:
-            return 'You need to specify the password', 400
-        if 'email' not in body:
-            return 'You need to specify the email', 400
+    user = User.query.filter_by(email=email).first()
 
-        user = User()
-        user.email = body['email']
-        user.password = body['password']
-        user.username = body['username']
-        db.session.add(user)
+    if user:
+        return jsonify({"msg" : "User already exist"})
+    else: 
+        new_user = User(email=email, password=password, username= username)
+        db.session.add(new_user)
         db.session.commit()
         return "ok", 200
-    if request.method == 'GET':
-        all_user = list(map(lambda x: x.serialize(), User.query.all()))
-        # all_user = [ user.serialize() for user in User.query.all() ] 
-        if len(all_user) > 0:
-            return jsonify(all_user), 200
-        else:
-            return  jsonify({ "msg": "No existing Users" }), 200     
-    
-    return "Invalid Method", 404
+
+@app.route('/login', methods=['POST'])
+def signin():
+    # username = request.json.get("username", None)
+    # password = request.json.get("password", None)
+    # if username != "test" or password != "test":
+    #     return jsonify({"msg": "Bad username or password"}), 401
+
+    # access_token = create_access_token(identity=username)
+    # return jsonify(access_token=access_token)
+    return "Mantenimiento", 200
+
+@app.route('/user', methods=['GET'])
+def handle_user_all():
+    all_user = list(map(lambda x: x.serialize(), User.query.all()))
+    # all_user = [ user.serialize() for user in User.query.all() ] 
+    if len(all_user) > 0:
+        return jsonify(all_user), 200
+    else:
+        return  jsonify({ "msg": "No existing Users" }), 200    
 
 @app.route('/user/<int:user_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_user_id(user_id):
@@ -231,7 +261,33 @@ def handle_planets_id(planet_id):
 
 @app.route('/favorites', methods=['GET', 'POST'])
 def handle_favorites_all():
-    return "Favorites maintenance"
+    body = request.get_json()
+    if request.method == 'POST':
+        if body is None:
+            return "The request body is null", 400
+        if 'username' not in body:
+            return 'You need to specify the username', 400
+        if 'password' not in body:
+            return 'You need to specify the password', 400
+        if 'email' not in body:
+            return 'You need to specify the email', 400
+
+        favorite = Favorite()
+        favorite.email = body['email']
+        favorite.password = body['password']
+        favorite.username = body['username']
+        db.session.add(favorite)
+        db.session.commit()
+        return "ok", 200
+    if request.method == 'GET':
+        all_favorite = list(map(lambda x: x.serialize(), Favorite.query.all()))
+        # all_user = [ user.serialize() for user in User.query.all() ] 
+        if len(all_favorite) > 0:
+            return jsonify(all_favorite), 200
+        else:
+            return  jsonify({ "msg": "No existing Favorites" }), 200     
+    
+    return jsonify({ "msg": "Invalid Method" }), 404
 
 @app.route('/favorites/<int:favorite_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_favorites_id(favorite_id):
