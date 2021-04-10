@@ -25,7 +25,8 @@ class User(db.Model):
         }
 
 class People(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    idx = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, unique=True, nullable=False)
     name = db.Column(db.String(80), unique=True, nullable=False)
     birth_year = db.Column(db.String(50), nullable=False)
     gender = db.Column(db.String(50), nullable=False)
@@ -52,7 +53,8 @@ class People(db.Model):
         }
 
 class Planet(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    idx = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, unique=True, nullable=False)
     name = db.Column(db.String(80), nullable=False)
     climate = db.Column(db.String(50), nullable=False)
     population = db.Column(db.Integer, nullable=False)

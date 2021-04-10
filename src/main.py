@@ -30,8 +30,8 @@ db.init_app(app) ## inicializo mi base de datos con mi app (db = SQLAlchemy(app)
 CORS(app)
 setup_admin(app)
 
-
-def load_data_users():
+@app.before_first_request
+def load_users():
     users = [
         {"email":"josecarrillo8@gmail.com", "password":"1234", "username":"jcarrillo"},
         {"email":"hangelous29@gmail.com", "password":"1234", "username":"hangelous"}
@@ -47,6 +47,31 @@ def load_data_users():
             db.session.add(new_user)
             db.session.commit()
 
+@app.before_first_request
+def load_planets():
+    res = requests.get('https://swapi.dev/api/people')
+    
+    if res.status_code != 200:
+        raise APIException('Error: Server returned status code: ', status_code=res.status_code)
+    data = res.json()
+    lista = data['results']
+    
+    for idx in range(len(lista)):
+        new_people = People()
+        new_people.id = idx+1
+        new_people.name = lista[idx].get('name')
+        new_people.birth_year = lista[idx].get('birth_year')
+        new_people.gender = lista[idx].get('gender')
+        new_people.height = lista[idx].get('height')
+        new_people.skin_color = lista[idx].get('skin_color')
+        new_people.eye_color = lista[idx].get('eye_color')
+        db.session.add(new_people)
+        db.session.commit()
+        
+        
+    
+    
+
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
@@ -55,7 +80,7 @@ def handle_invalid_usage(error):
 # generate sitemap with all your endpoints
 @app.route('/')
 def sitemap():
-    load_data_users() # Llenamos la tabla de usuarios con 2 usuarios de test
+    # load_data_users() # Llenamos la tabla de usuarios con 2 usuarios de test
     return generate_sitemap(app)
 
 @app.route('/register', methods=['POST'])
