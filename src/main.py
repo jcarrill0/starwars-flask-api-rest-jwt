@@ -11,7 +11,10 @@ from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User, People, Planet, Favorite
 
-# from flask_jwt_extended import create_access_token, et_jwt_identity, jwt_required, JWTManager
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -19,13 +22,30 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_CONNECTION_STRING')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Setup the Flask-JWT-Extended extension
-# app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
-# jwt = JWTManager(app)
+app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
+jwt = JWTManager(app)
 
 MIGRATE = Migrate(app, db)
 db.init_app(app) ## inicializo mi base de datos con mi app (db = SQLAlchemy(app))
 CORS(app)
 setup_admin(app)
+
+
+def load_data_users():
+    users = [
+        {"email":"josecarrillo8@gmail.com", "password":"1234", "username":"jcarrillo"},
+        {"email":"hangelous29@gmail.com", "password":"1234", "username":"hangelous"}
+    ]
+
+    for user in users:
+        my_user = User.query.filter_by(email=user['email']).first()
+        if my_user is None:
+            new_user = User()
+            new_user.email= user['email']
+            new_user.password= user['password']
+            new_user.username= user['username']
+            db.session.add(new_user)
+            db.session.commit()
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
@@ -35,38 +55,70 @@ def handle_invalid_usage(error):
 # generate sitemap with all your endpoints
 @app.route('/')
 def sitemap():
+    load_data_users() # Llenamos la tabla de usuarios con 2 usuarios de test
     return generate_sitemap(app)
 
-@app.route('/user', methods=['GET', 'POST'])
-def handle_user_all():
-    body = request.get_json()
-
-    if request.method == 'POST':
-        if body is None:
-            return "The request body is null", 400
-        if 'username' not in body:
-            return 'You need to specify the username', 400
-        if 'password' not in body:
-            return 'You need to specify the password', 400
-        if 'email' not in body:
-            return 'You need to specify the email', 400
-
-        user = User()
-        user.email = body['email']
-        user.password = body['password']
-        user.username = body['username']
-        db.session.add(user)
-        db.session.commit()
-        return "ok", 200
-    if request.method == 'GET':
-        all_user = list(map(lambda x: x.serialize(), User.query.all()))
-        # all_user = [ user.serialize() for user in User.query.all() ] 
-        if len(all_user) > 0:
-            return jsonify(all_user), 200
-        else:
-            return  jsonify({ "msg": "No existing Users" }), 200     
+@app.route('/register', methods=['POST'])
+def signout():
+    username = request.json.get('username', None)
+    password = request.json.get('password', None)
+    email = request.json.get('email', None)
     
-    return "Invalid Method", 404
+    if username is None:
+        return 'You need to specify the username', 400
+    if password is None:
+        return 'You need to specify the password', 400
+    if email is None:
+        return 'You need to specify the email', 400
+
+    user = User.query.filter_by(email=email).first()
+
+    if user:
+        return jsonify({"msg" : "User already exist"})
+    else: 
+        new_user = User(email=email, password=password, username= username)
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({"msg" : "User add successfuly!"}), 200
+
+@app.route('/login', methods=['POST'])
+def signin():
+
+    password = request.json.get('password', None)
+    email = request.json.get('email', None)
+
+    if password is None:
+        return 'You need to specify the password', 400
+    if email is None:
+        return 'You need to specify the email', 400
+
+    user = User.query.filter_by(email=email, password=password).first()
+    if user is None:
+        # user not found on the db
+        return jsonify({"msg": "Invalidate email or password"})
+    else: 
+        print(user)
+        # create a new token with user_id
+        access_token = create_access_token(identity=user.id)
+        return jsonify({"token" : access_token, "user_id" : user.id}), 200
+
+@app.route("/protected", methods=["GET"])
+@jwt_required()
+def protected():
+    # Access the identity of the current user with get_jwt_identity
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    print(current_user_id, user)
+    return jsonify({"id":user.id, "email":user.email}), 200
+
+@app.route('/user', methods=['GET'])
+def handle_user_all():
+    all_user = list(map(lambda x: x.serialize(), User.query.all()))
+    # all_user = [ user.serialize() for user in User.query.all() ] 
+    if len(all_user) > 0:
+        return jsonify(all_user), 200
+    else:
+        return  jsonify({ "msg": "No existing Users" }), 200    
 
 @app.route('/user/<int:user_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_user_id(user_id):
@@ -231,7 +283,33 @@ def handle_planets_id(planet_id):
 
 @app.route('/favorites', methods=['GET', 'POST'])
 def handle_favorites_all():
-    return "Favorites maintenance"
+    body = request.get_json()
+    if request.method == 'POST':
+        if body is None:
+            return "The request body is null", 400
+        if 'username' not in body:
+            return 'You need to specify the username', 400
+        if 'password' not in body:
+            return 'You need to specify the password', 400
+        if 'email' not in body:
+            return 'You need to specify the email', 400
+
+        favorite = Favorite()
+        favorite.email = body['email']
+        favorite.password = body['password']
+        favorite.username = body['username']
+        db.session.add(favorite)
+        db.session.commit()
+        return "ok", 200
+    if request.method == 'GET':
+        all_favorite = list(map(lambda x: x.serialize(), Favorite.query.all()))
+        # all_user = [ user.serialize() for user in User.query.all() ] 
+        if len(all_favorite) > 0:
+            return jsonify(all_favorite), 200
+        else:
+            return  jsonify({ "msg": "No existing Favorites" }), 200     
+    
+    return jsonify({ "msg": "Invalid Method" }), 404
 
 @app.route('/favorites/<int:favorite_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_favorites_id(favorite_id):
