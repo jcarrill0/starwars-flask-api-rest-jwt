@@ -1,4 +1,5 @@
 from flask import jsonify, url_for
+import requests
 
 class APIException(Exception):
     status_code = 400
@@ -39,3 +40,55 @@ def generate_sitemap(app):
         <p>Start working on your proyect by following the <a href="https://github.com/4GeeksAcademy/flask-rest-hello/blob/master/docs/_QUICK_START.md" target="_blank">Quick Start</a></p>
         <p>Remember to specify a real endpoint path like: </p>
         <ul style="text-align: left;">"""+links_html+"</ul></div>"
+        
+def load_users(User, db):
+    users = [
+        {"email":"josecarrillo8@gmail.com", "password":"1234", "username":"jcarrillo"},
+        {"email":"hangelous29@gmail.com", "password":"1234", "username":"hangelous"}
+    ]
+
+    for user in users:
+        my_user = User.query.filter_by(email=user['email']).first()
+        if my_user is None:
+            new_user = User()
+            new_user.email = user['email']
+            new_user.password = user['password']
+            new_user.username = user['username']
+            db.session.add(new_user)
+            db.session.commit()
+
+def load_people(People, db):
+    res = requests.get('https://swapi.dev/api/people')
+    data = res.json()
+    
+    for idx, people in enumerate(data['results'])):
+        my_people = People.query.filter_by(id=idx+1).first()
+        if my_people is None:
+            new_people = People()
+            new_people.id = idx+1
+            new_people.name = people['name']
+            new_people.birth_year = people['birth_year']
+            new_people.gender = people['gender']
+            new_people.height = people['height']
+            new_people.skin_color = people['skin_color']
+            new_people.eye_color = people['eye_color']
+            db.session.add(new_people)
+            db.session.commit()
+            
+def load_planets(Planet, db):
+    res = requests.get('https://swapi.dev/api/planets')
+    data = res.json()
+    
+    for idx, planet in enumerate(data['results']):
+        my_planet = Planet.query.filter_by(id=idx+1).first()
+        if my_planet is None:
+            new_planet = Planet()
+            new_planet.id = idx+1
+            new_planet.name = planet['name']
+            new_planet.climate = planet['climate']
+            new_planet.population = planet['population']
+            new_planet.orbital_period = planet['orbital_period']
+            new_planet.rotation_period = planet['rotation_period']
+            new_planet.diameter = planet['diameter']
+            db.session.add(new_planet)
+            db.session.commit()       

@@ -3,11 +3,13 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 """
 
 import os
+import requests
 from flask import Flask, request, jsonify, url_for
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
-from utils import APIException, generate_sitemap
+from utils import APIException, generate_sitemap 
+from utils import load_users, load_people, load_planets
 from admin import setup_admin
 from models import db, User, People, Planet, Favorite
 
@@ -30,47 +32,12 @@ db.init_app(app) ## inicializo mi base de datos con mi app (db = SQLAlchemy(app)
 CORS(app)
 setup_admin(app)
 
+# Load the data of users, planets and people
 @app.before_first_request
-def load_users():
-    users = [
-        {"email":"josecarrillo8@gmail.com", "password":"1234", "username":"jcarrillo"},
-        {"email":"hangelous29@gmail.com", "password":"1234", "username":"hangelous"}
-    ]
-
-    for user in users:
-        my_user = User.query.filter_by(email=user['email']).first()
-        if my_user is None:
-            new_user = User()
-            new_user.email= user['email']
-            new_user.password= user['password']
-            new_user.username= user['username']
-            db.session.add(new_user)
-            db.session.commit()
-
-@app.before_first_request
-def load_planets():
-    res = requests.get('https://swapi.dev/api/people')
-    
-    if res.status_code != 200:
-        raise APIException('Error: Server returned status code: ', status_code=res.status_code)
-    data = res.json()
-    lista = data['results']
-    
-    for idx in range(len(lista)):
-        new_people = People()
-        new_people.id = idx+1
-        new_people.name = lista[idx].get('name')
-        new_people.birth_year = lista[idx].get('birth_year')
-        new_people.gender = lista[idx].get('gender')
-        new_people.height = lista[idx].get('height')
-        new_people.skin_color = lista[idx].get('skin_color')
-        new_people.eye_color = lista[idx].get('eye_color')
-        db.session.add(new_people)
-        db.session.commit()
-        
-        
-    
-    
+def load_data():
+    load_users(User, db)
+    load_people(People, db)
+    load_planets(Planet, db)
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
@@ -108,7 +75,6 @@ def signout():
 
 @app.route('/login', methods=['POST'])
 def signin():
-
     password = request.json.get('password', None)
     email = request.json.get('email', None)
 

@@ -57,7 +57,7 @@ class Planet(db.Model):
     id = db.Column(db.Integer, unique=True, nullable=False)
     name = db.Column(db.String(80), nullable=False)
     climate = db.Column(db.String(50), nullable=False)
-    population = db.Column(db.Integer, nullable=False)
+    population = db.Column(db.String(20), nullable=False)
     orbital_period = db.Column(db.Integer, nullable=False)
     rotation_period = db.Column(db.Integer, nullable=False)
     diameter = db.Column(db.Integer, nullable=False)
