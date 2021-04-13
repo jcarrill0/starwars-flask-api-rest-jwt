@@ -58,12 +58,13 @@ def load_users(User, db):
             db.session.commit()
 
 def load_people(People, db):
-    res = requests.get('https://swapi.dev/api/people')
-    data = res.json()
+    tb_people = People.query.all()
     
-    for idx, people in enumerate(data['results'])):
-        my_people = People.query.filter_by(id=idx+1).first()
-        if my_people is None:
+    if tb_people is None:
+        res = requests.get('https://swapi.dev/api/people')
+        data = res.json()
+        
+        for idx, people in enumerate(data['results'])):
             new_people = People()
             new_people.id = idx+1
             new_people.name = people['name']
@@ -76,12 +77,15 @@ def load_people(People, db):
             db.session.commit()
             
 def load_planets(Planet, db):
-    res = requests.get('https://swapi.dev/api/planets')
-    data = res.json()
+    tb_planet = Planet.query.all()
     
-    for idx, planet in enumerate(data['results']):
-        my_planet = Planet.query.filter_by(id=idx+1).first()
-        if my_planet is None:
+    if tb_planet is None:
+        res = requests.get('https://swapi.dev/api/planets')
+        data = res.json()
+        
+        for idx, planet in enumerate(data['results']):
+            # my_planet = Planet.query.filter_by(id=idx+1).first()
+            # if my_planet is None:
             new_planet = Planet()
             new_planet.id = idx+1
             new_planet.name = planet['name']

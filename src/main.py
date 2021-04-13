@@ -3,7 +3,6 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 """
 
 import os
-import requests
 from flask import Flask, request, jsonify, url_for
 from flask_migrate import Migrate
 from flask_swagger import swagger
@@ -84,7 +83,7 @@ def signin():
         return 'You need to specify the email', 400
 
     user = User.query.filter_by(email=email, password=password).first()
-    if user is None:
+    if not user:
         # user not found on the db
         return jsonify({"msg": "Invalidate email or password"})
     else: 
