@@ -31,6 +31,16 @@ db.init_app(app) ## inicializo mi base de datos con mi app (db = SQLAlchemy(app)
 CORS(app)
 setup_admin(app)
 
+
+@jwt.user_identity_loader
+def user_identity_lookup(user):
+    return user.id
+
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    identity = jwt_data["sub"]
+    return User.query.filter_by(id=identity).one_or_none()
+
 # Load the data of users, planets and people
 @app.before_first_request
 def load_data():

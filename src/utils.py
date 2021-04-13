@@ -43,8 +43,8 @@ def generate_sitemap(app):
         
 def load_users(User, db):
     users = [
-        {"email":"josecarrillo8@gmail.com", "password":"1234", "username":"jcarrillo"},
-        {"email":"hangelous29@gmail.com", "password":"1234", "username":"hangelous"}
+        {"email":"josecarrillo8@gmail.com", "password":"1234", "username":"jcarrillo", "is_active":True},
+        {"email":"hangelous29@gmail.com", "password":"1234", "username":"hangelous", "is_active":True}
     ]
 
     for user in users:
@@ -54,17 +54,18 @@ def load_users(User, db):
             new_user.email = user['email']
             new_user.password = user['password']
             new_user.username = user['username']
+            new_user.is_active = user['is_active']
             db.session.add(new_user)
             db.session.commit()
 
 def load_people(People, db):
     tb_people = People.query.all()
     
-    if tb_people is None:
+    if not tb_people:
         res = requests.get('https://swapi.dev/api/people')
         data = res.json()
         
-        for idx, people in enumerate(data['results'])):
+        for idx, people in enumerate(data['results']):
             new_people = People()
             new_people.id = idx+1
             new_people.name = people['name']
@@ -79,7 +80,7 @@ def load_people(People, db):
 def load_planets(Planet, db):
     tb_planet = Planet.query.all()
     
-    if tb_planet is None:
+    if not tb_planet:
         res = requests.get('https://swapi.dev/api/planets')
         data = res.json()
         

@@ -8,8 +8,9 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(80), nullable=False)
     password = db.Column(db.Text, nullable=False)
-    favorites = db.relationship("Favorite", backref="user", uselist=False, lazy="select")
+    is_active = db.Column(db.Boolean(), unique=False, nullable=True)    
     created_at = db.Column(db.DateTime, default=datetime.datetime.now())
+    favorites = db.relationship("Favorite", backref="user", uselist=False, lazy="select")
 
     def __repr__(self):
         return '<User %r>' % self.username
