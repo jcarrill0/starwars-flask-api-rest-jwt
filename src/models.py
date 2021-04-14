@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import safe_str_cmp  
 import datetime
 
 db = SQLAlchemy()
@@ -7,7 +8,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(80), nullable=False)
-    password = db.Column(db.Text, nullable=False)
+    password = db.Column(db.Text, unique=False, nullable=False)
     is_active = db.Column(db.Boolean(), unique=False, nullable=True)    
     created_at = db.Column(db.DateTime, default=datetime.datetime.now())
     favorites = db.relationship("Favorite", backref="user", uselist=False, lazy="select")
@@ -16,12 +17,14 @@ class User(db.Model):
         return '<User %r>' % self.username
         # return f'<User {self.name}>'
 
+    def check_password(self, password):
+        return safe_str_cmp(password, self.password)
+    
     def serialize(self):
         return {
             "id": self.id,
             "username" : self.username,
             "email": self.email,
-            "password" : self.password,
             "create" : self.created_at
         }
 
